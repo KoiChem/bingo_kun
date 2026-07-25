@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元素記号ビンゴ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;700&family=IBM+Plex+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --highlight-color: #fff3cd;
+            --active-border: #ffc107;
+            --bg-color: #f8f9fa;
+        }
+        body {
+            /* 日本語優先で適用し、OSごとの差を抑える */
+            font-family: 'IBM Plex Sans JP', 'Noto Sans JP', 'Yu Gothic', 'Meiryo', 'Hiragino Sans', 'IBM Plex Sans', Helvetica, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+            overflow: hidden;
+        }
+        
+        /* ヘッダー */
+        .header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px; 
+            background: rgba(255,255,255,0.8);
+            flex-shrink: 0;
+            z-index: 100;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .gear-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            color: #666;
+            transition: color 0.2s, transform 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .gear-btn:hover {
+            color: var(--primary-color);
+            transform: rotate(45deg);
+        }
+
+        #set-title-display {
+            font-weight: bold;
+            font-size: 18px;
+            color: #444;
+            padding-right: 10px;
+            border-right: 2px solid #ccc;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        #set-title-display:hover {
+            color: var(--primary-color);
+        }
+
+        .mode-button-group {
+            display: flex;
+            background: #e9ecef;
+            padding: 4px;
+            border-radius: 12px;
+            gap: 2px;
+        }
+        .mode-btn {
+            border: none;
+            background: transparent;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mode-btn.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-right {
+            display: flex;
+            gap: 8px;
+        }
+        .sub-btn {
+            padding: 6px 14px;
+            font-size: 13px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #666;
+            font-weight: bold;
+        }
+
+        /* メイン表示エリア */
+        .display-area {
+            flex: 9; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: white;
+            margin: 5px 20px 0;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden; 
+        }
+
+        #current-value-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ギザギザ解消のため、ベースサイズを巨大化 */
+        #current-value {
+            font-weight: 700; 
+            line-height: 1.25;
+            padding: 0 0.05em; 
+            margin: 0;
+            text-align: center;
+            font-size: 12vmin; 
+            transform-origin: center center;
+        }
+
+        /* シャッフル中のみGPUキャッシュを有効化（確定時に外して高解像度化） */
+        .animating-text {
+            will-change: transform;
+        }
+
+        .shuffling-text, .shuffling-text * { color: #ccc !important; }
+        .layout-1line {
+            white-space: nowrap !important;
+            display: inline-block;
+            max-width: none;
+            word-break: normal;
+            overflow-wrap: normal;
+            letter-spacing: -0.015em;
+        }
+        
+        /* IBM Plex Sans に合わせた安全マージン */
+        .layout-multiline { 
+            white-space: normal; 
+            word-break: normal; 
+            overflow-wrap: break-word; 
+            max-width: 9.5em; 
+        }
+
+        sub { font-size: 0.45em; bottom: -0.25em; }
+        sup { font-size: 0.45em; top: -0.4em; }
+        .subscript-number { position: relative; font-size: 0.45em; top: 0.15em; margin-right: 0.05em; }
+        .history-item .subscript-number { font-size: 0.5em; }
+
+        .action-btn {
+            padding: 20px 50px;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 6px 0px #357abd;
+            cursor: pointer;
+            transition: all 0.1s;
+            z-index: 10;
+        }
+        .action-btn:active { transform: translateY(3px); box-shadow: 0 3px 0px #357abd; }
+
+        #page-number { position: absolute; bottom: 12px; left: 15px; font-size: 18px; font-weight: bold; color: #ccc; }
+
+        /* 履歴エリア */
+        .history {
+            flex: 5; 
+            overflow-y: auto;
+            background: #f1f3f5;
+            margin: 5px 20px 20px;
+            padding: 15px;
+            border-radius: 20px;
+            box-sizing: border-box;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            justify-content: center;
+        }
+        .history-item {
+            background: #fff;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 26px;
+            font-weight: bold;
+            border: 2px solid #e9ecef;
+        }
+        .history-item.active {
+            background-color: var(--highlight-color);
+            border-color: var(--active-border);
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        /* カスタムシステムモーダル */
+        .sys-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 4000;
+            justify-content: center;
+            align-items: center;
+        }
+        .sys-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            max-height: 90dvh;
+        }
+        #sys-modal-msg {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            text-align: left;
+        }
+        .sys-modal-buttons { display: flex; gap: 15px; justify-content: center; }
+        .sys-btn { padding: 10px 25px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 15px; }
+        .sys-btn-primary { background: var(--primary-color); color: white; }
+        .sys-btn-danger { background: #dc3545; color: white; }
+        .sys-btn-secondary { background: #e9ecef; color: #333; }
+
+        /* セット選択モーダル */
+        #set-selector-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 4500;
+            justify-content: center;
+            align-items: center;
+        }
+        .set-selector-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+            max-height: 80dvh;
+            display: flex;
+            flex-direction: column;
+        }
+        .set-selector-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .set-selector-list {
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .set-selector-btn {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            background: #fff;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .set-selector-btn:hover {
+            border-color: var(--primary-color);
+            background: #f8f9fa;
+        }
+        .set-selector-btn.active-set {
+            border-color: var(--primary-color);
+            background: #f0f7ff;
+            color: var(--primary-color);
+        }
+
+        .shaking { animation: blink 0.08s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        /* 設定オーバーレイ */
+        #settings-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            z-index: 2000;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .settings-header {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+            gap: 15px;
+        }
+        .settings-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .settings-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* アイコンボタン */
+        .icon-btn {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            color: #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .icon-btn:hover { background: #f1f3f5; border-color: #bbb; color: var(--primary-color); }
+        .icon-btn svg { width: 20px; height: 20px; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; fill: none; stroke: currentColor; }
+        .icon-btn-danger:hover { color: #dc3545; }
+
+        .settings-actions { display: flex; gap: 10px; }
+
+        .table-container {
+            flex: 1;
+            overflow-x: auto; /* ★横スクロール対応 */
+            overflow-y: auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        table { width: max-content; border-collapse: collapse; text-align: left; }
+        th { background: #f1f3f5; position: sticky; top: 0; z-index: 10; padding: 8px 7px; border-bottom: 2px solid #dee2e6; font-size: 14px; white-space: nowrap; }
+        td { padding: 6px 7px; border-bottom: 1px solid #eee; }
+        
+        /* ★ヘッダーセルのズレ防止（Flexbox化） */
+        .th-content { display: flex; flex-direction: column; gap: 5px; }
+
+        /* ★入力枠（通常） */
+td input[type="text"] { 
+            width: 100%;
+            min-width: 80px; 
+            padding: 6px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+            font-size: 14px; 
+            transition: all 0.2s;
+        }
+        /* ヘッダー/カード入力欄はJSで自動幅調整 */
+.head-input {
+            width: 100%;
+            min-width: 80px;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: all 0.2s;
+            margin-left: 0;
+            align-self: flex-start;
+        }
+.item-input {
+            width: 100%;
+            min-width: 80px;
+        }
+        
+        input[readonly] { background-color: #f8f9fa; color: #6c757d; }
+        .num-col { width: 30px; text-align: center; color: #999; font-weight: bold; font-size: 12px; }
+        .check-col { width: 40px; text-align: center; }
+        .error-cell { background-color: #ffe6e6 !important; border: 2px solid #dc3545 !important; }
+
+        /* Excelペーストエリア */
+        #paste-container { display: none; margin-bottom: 10px; }
+        #paste-area { width: 100%; height: 80px; padding: 10px; box-sizing: border-box; border: 2px dashed var(--primary-color); border-radius: 8px; resize: vertical; font-size: 12px; }
+
+        /* カスタムツールチップ */
+        .custom-tooltip {
+            position: absolute;
+            background: rgba(30, 30, 30, 0.9);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 5000;
+            white-space: nowrap;
+            transform: translate(-50%, -100%);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .custom-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%; left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(30, 30, 30, 0.9) transparent transparent transparent;
+        }
+
+        /* ドロップダウンメニュー */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%; left: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 1px solid #eee;
+            display: none;
+            flex-direction: column;
+            min-width: 200px;
+            z-index: 3000;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .dropdown-menu.show { display: flex; }
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #444;
+            transition: background 0.1s;
+        }
+        .dropdown-item:hover { background: #f8f9fa; color: var(--primary-color); }
+        .dropdown-item svg { width: 16px; height: 16px; }
+
+        /* 並べ替えモーダル */
+        .sort-list-container {
+            max-height: 60vh;
+            overflow-y: auto;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        #sort-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #sort-list li {
+            padding: 12px 15px;
+            background: #fff;
+            border: 1px solid #ddd;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: grab;
+            user-select: none;
+            transition: transform 0.1s;
+        }
+        #sort-list li:active { cursor: grabbing; }
+        #sort-list li.dragging { opacity: 0.5; background: #f8f9fa; }
+        .drag-handle { color: #aaa; cursor: grab; }
+
+        /* インポート・プレビューモーダル */
+        .import-preview-container {
+            display: flex;
+            gap: 20px;
+            text-align: left;
+            height: 50vh;
+            min-height: 300px;
+        }
+        .import-list-pane { flex: 1; border-right: 1px solid #eee; padding-right: 15px; overflow-y: auto; }
+        .import-detail-pane { flex: 1.5; overflow-y: auto; padding-left: 5px; }
+        .import-set-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .import-set-item:hover { background: #f8f9fa; }
+        .import-set-item.selected-for-preview { border-color: var(--primary-color); background: #f0f7ff; }
+        .conflict-warn { color: #dc3545; font-size: 12px; margin-left: auto; display: flex; align-items: center; gap:4px;}
+        .preview-cards { display: flex; flex-wrap: wrap; gap: 6px; }
+        .preview-card { background: #eee; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+
+        /* ワイドモーダル */
+        .sys-modal-content.wide { max-width: 700px; }
+        .hidden-initial { display: none; }
+        .settings-title-row { display: flex; gap: 10px; align-items: center; }
+        .settings-select { font-size: 16px; padding: 6px; border-radius: 6px; width: 220px; }
+        .settings-title-input { font-size: 16px; padding: 6px; width: 180px; border-radius: 6px; border: 1px solid #ccc; }
+        .settings-save-btn { padding: 6px 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .file-input-hidden { display: none; }
+        .relative-wrap { position: relative; }
+        .grow-spacer { flex-grow: 1; }
+        .danger-border { border-color: #f5c6cb; }
+        .bottom-align { vertical-align: bottom; }
+        .sort-help-text { font-size: 12px; color: #666; }
+        .paste-preview-wrap { max-height: 400px; overflow-y: auto; text-align: left; font-size: 13px; }
+        .paste-preview-title { color: var(--primary-color); font-weight: bold; margin-bottom: 10px; }
+        .paste-preview-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        .paste-preview-head { background: #f1f3f5; padding: 5px; border: 1px solid #ddd; }
+        .paste-preview-cell { padding: 5px; border: 1px solid #ddd; }
+        .paste-preview-cell.error { background: #ffe6e6; color: red; }
+        .paste-preview-warn { color: red; font-weight: bold; margin-top: 10px; }
+        .import-preview-note { font-size: 13px; color: #666; margin-top: 0; }
+        .import-set-label { font-weight: bold; cursor: pointer; }
+        .conflict-action { font-size: 11px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-area">
+        <div class="header-left">
+            <button class="gear-btn" id="open-settings-btn" title="設定を開く">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
+            <div id="set-title-display" title="セットを選択">元素記号</div>
+            <div class="mode-button-group" id="mode-selector"></div>
+        </div>
+        <div class="header-right">
+            <button class="sub-btn" id="fs-btn">全画面</button>
+            <button class="sub-btn" id="reset-trigger">リセット</button>
+        </div>
+    </div>
+
+    <div class="display-area" id="main-display">
+        <button id="start-overlay-btn" class="action-btn">スタート</button>
+        <div id="current-value-container" class="hidden-initial">
+            <div id="current-value"></div>
+        </div>
+        <button id="end-reset-btn" class="action-btn hidden-initial">スタートに戻る</button>
+        <div id="page-number"></div>
+    </div>
+
+    <div class="history">
+        <ul id="history-list" class="history-list"></ul>
+    </div>
+
+    <div id="sys-modal" class="sys-modal-overlay">
+        <div class="sys-modal-content" id="sys-modal-content-box">
+            <div id="sys-modal-msg"></div>
+            <div class="sys-modal-buttons">
+                <button class="sys-btn sys-btn-secondary hidden-initial" id="sys-modal-no">キャンセル</button>
+                <button class="sys-btn sys-btn-primary" id="sys-modal-ok">OK</button>
+                <button class="sys-btn sys-btn-danger hidden-initial" id="sys-modal-yes">はい</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="set-selector-modal">
+        <div class="set-selector-content">
+            <div class="set-selector-title">セットを選択</div>
+            <div class="set-selector-list" id="set-selector-list"></div>
+            <div class="sys-modal-buttons">
+                <button class="sys-btn sys-btn-secondary" id="set-selector-close">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-overlay">
+        <div class="settings-header">
+            <div class="settings-top-row">
+                <div class="settings-title-row">
+                    <select id="set-select" class="settings-select"></select>
+                    <input type="text" id="set-title-input" class="settings-title-input" maxlength="15" placeholder="セット名">
+                </div>
+                <div class="settings-actions">
+                    <button class="btn sub-btn" id="close-settings-btn">キャンセル</button>
+                    <button class="btn sys-btn-primary settings-save-btn" id="save-settings-btn">反映して戻る</button>
+                </div>
+            </div>
+
+            <div class="settings-toolbar">
+                <button class="icon-btn" id="btn-new-set" data-tooltip="空のセットを新規作成">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                </button>
+                <button class="icon-btn" id="btn-copy-set" data-tooltip="現在のセットを複製">
+                    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                </button>
+                <button class="icon-btn" id="btn-toggle-paste" data-tooltip="Excelからデータを貼付">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                </button>
+                <button class="icon-btn" id="btn-sort-sets" data-tooltip="セットの並べ替え">
+                    <svg viewBox="0 0 24 24"><line x1="12" y1="4" x2="12" y2="20"></line><polyline points="8 8 12 4 16 8"></polyline><polyline points="8 16 12 20 16 16"></polyline></svg>
+                </button>
+                
+                <input type="file" id="import-file-input" class="file-input-hidden" accept=".json">
+                <button class="icon-btn" id="btn-import" data-tooltip="ファイルからインポート">
+                    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+                
+                <div class="relative-wrap" id="export-dropdown-wrapper">
+                    <button class="icon-btn" id="btn-export" data-tooltip="ファイルへエクスポート">
+                        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    </button>
+                    <div class="dropdown-menu" id="export-menu">
+                        <div class="dropdown-item" id="export-single">
+                            <svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                            現在のセットのみ書き出し
+                        </div>
+                        <div class="dropdown-item" id="export-all">
+                            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            全データをバックアップ
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grow-spacer"></div>
+                <button class="icon-btn icon-btn-danger danger-border" id="btn-del-set" data-tooltip="現在のセットを削除">
+                    <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="paste-container">
+            <textarea id="paste-area" placeholder="ここにExcelからコピーした表を貼り付けてください。&#10;※1行目は「デッキ名」、2行目以降は「カード」としてプレビュー表示されます。"></textarea>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <colgroup>
+                    <col class="num-col">
+                    <col class="check-col">
+                    <col id="deck-col-0">
+                    <col id="deck-col-1">
+                    <col id="deck-col-2">
+                    <col id="deck-col-3">
+                    <col id="deck-col-4">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th class="num-col bottom-align">No</th>
+                        <th class="check-col bottom-align"><input type="checkbox" id="check-all" title="すべて選択/解除"></th>
+                        <th><div class="th-content"><span>デッキ1</span> <input type="text" id="head-m0" class="head-input"></div></th>
+                        <th><div class="th-content"><span>デッキ2</span> <input type="text" id="head-m1" class="head-input"></div></th>
+                        <th><div class="th-content"><span>デッキ3</span> <input type="text" id="head-m2" class="head-input" placeholder="未設定"></div></th>
+                        <th><div class="th-content"><span>デッキ4</span> <input type="text" id="head-m3" class="head-input" placeholder="未設定"></div></th>
+                        <th><div class="th-content"><span>デッキ5</span> <input type="text" id="head-m4" class="head-input" placeholder="未設定"></div></th>
+                    </tr>
+                </thead>
+                <tbody id="settings-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // ==========================================
+    // 0. カスタムツールチップ実装
+    // ==========================================
+    const tooltip = document.createElement('div');
+    tooltip.className = 'custom-tooltip';
+    document.body.appendChild(tooltip);
+    let tooltipTimeout;
+
+    document.querySelectorAll('.icon-btn').forEach(btn => {
+        btn.addEventListener('mouseenter', () => {
+            const txt = btn.getAttribute('data-tooltip');
+            if(!txt) return;
+            tooltipTimeout = setTimeout(() => {
+                tooltip.textContent = txt;
+                const ttWidth = tooltip.offsetWidth;
+                const rect = btn.getBoundingClientRect();
+                let leftPos = rect.left + rect.width / 2;
+                
+                if (leftPos - ttWidth / 2 < 10) leftPos = ttWidth / 2 + 10;
+                else if (leftPos + ttWidth / 2 > window.innerWidth - 10) leftPos = window.innerWidth - ttWidth / 2 - 10;
+                
+                tooltip.style.left = `${leftPos}px`;
+                tooltip.style.top = `${rect.top - 8}px`;
+                tooltip.style.opacity = 1;
+            }, 300);
+        });
+        btn.addEventListener('mouseleave', () => { clearTimeout(tooltipTimeout); tooltip.style.opacity = 0; });
+        btn.addEventListener('click', () => { clearTimeout(tooltipTimeout); tooltip.style.opacity = 0; });
+    });
+
+    // ==========================================
+    // 1. システムモーダル (汎用)
+    // ==========================================
+    const sysModal = document.getElementById('sys-modal');
+    const sysModalContentBox = document.getElementById('sys-modal-content-box');
+    const sysModalMsg = document.getElementById('sys-modal-msg');
+    const sysModalYes = document.getElementById('sys-modal-yes');
+    const sysModalNo = document.getElementById('sys-modal-no');
+    const sysModalOk = document.getElementById('sys-modal-ok');
+    let sysModalCallback = null;
+
+    function resetModalStyle() {
+        sysModalContentBox.className = 'sys-modal-content';
+        sysModalMsg.innerHTML = '';
+        sysModalMsg.style.textAlign = 'left';
+    }
+
+    function customAlert(msg, callback = null, html = false, wide = false) {
+        resetModalStyle();
+        if(wide) sysModalContentBox.classList.add('wide');
+        if(html) sysModalMsg.innerHTML = msg; else sysModalMsg.innerText = msg;
+        sysModalYes.style.display = 'none'; sysModalNo.style.display = 'none'; sysModalOk.style.display = 'inline-block';
+        sysModalOk.innerText = "OK";
+        sysModal.style.display = 'flex';
+        sysModalCallback = callback;
+    }
+
+    function customConfirm(msg, callback, okText="はい", cancelText="キャンセル", html=false, wide=false) {
+        resetModalStyle();
+        if(wide) sysModalContentBox.classList.add('wide');
+        if(html) sysModalMsg.innerHTML = msg; else sysModalMsg.innerText = msg;
+        sysModalOk.style.display = 'none';
+        sysModalYes.style.display = 'inline-block'; sysModalYes.innerText = okText;
+        sysModalNo.style.display = 'inline-block'; sysModalNo.innerText = cancelText;
+        sysModal.style.display = 'flex';
+        sysModalCallback = callback;
+    }
+
+    function closeModalAndCallback(res) {
+        sysModal.style.display = 'none';
+        if (sysModalCallback) sysModalCallback(res);
+    }
+    sysModalOk.onclick = () => closeModalAndCallback(true);
+    sysModalYes.onclick = () => closeModalAndCallback(true);
+    sysModalNo.onclick = () => closeModalAndCallback(false);
+
+    // ==========================================
+    // 2. データ管理と初期化
+    // ==========================================
+    const APP_IDENTIFIER = 'ElementBingo_v2026_04_29';
+    const STORAGE_KEY = `ElementBingo::${APP_IDENTIFIER}::config`;
+    let config = loadConfig();
+    
+    function generateId() { return 'set_' + Date.now() + '_' + Math.floor(Math.random()*1000); }
+
+    function createDefaultConfig() {
+        const protectedSet = {
+            id: generateId(), title: "元素記号", isProtected: true,
+            modes: ["記号", "番号付", "元素名", "英語名", "番号"], items: []
+        };
+        const baseElements = [
+            { n: 1, s: "H", name: "水素", en: "Hydrogen" },
+            { n: 2, s: "He", name: "ヘリウム", en: "Helium" },
+            { n: 3, s: "Li", name: "リチウム", en: "Lithium" },
+            { n: 4, s: "Be", name: "ベリリウム", en: "Beryllium" },
+            { n: 5, s: "B", name: "ホウ素", en: "Boron" },
+            { n: 6, s: "C", name: "炭素", en: "Carbon" },
+            { n: 7, s: "N", name: "窒素", en: "Nitrogen" },
+            { n: 8, s: "O", name: "酸素", en: "Oxygen" },
+            { n: 9, s: "F", name: "フッ素", en: "Fluorine" },
+            { n: 10, s: "Ne", name: "ネオン", en: "Neon" },
+            { n: 11, s: "Na", name: "ナトリウム", en: "Sodium" },
+            { n: 12, s: "Mg", name: "マグネシウム", en: "Magnesium" },
+            { n: 13, s: "Al", name: "アルミニウム", en: "Aluminum" },
+            { n: 14, s: "Si", name: "ケイ素", en: "Silicon" },
+            { n: 15, s: "P", name: "リン", en: "Phosphorus" },
+            { n: 16, s: "S", name: "硫黄", en: "Sulfur" },
+            { n: 17, s: "Cl", name: "塩素", en: "Chlorine" },
+            { n: 18, s: "Ar", name: "アルゴン", en: "Argon" },
+            { n: 19, s: "K", name: "カリウム", en: "Potassium" },
+            { n: 20, s: "Ca", name: "カルシウム", en: "Calcium" },
+            { n: 29, s: "Cu", name: "銅", en: "Copper" },
+            { n: 38, s: "Sr", name: "ストロンチウム", en: "Strontium" },
+            { n: 56, s: "Ba", name: "バリウム", en: "Barium" }
+        ];
+        for (let i = 0; i < 30; i++) {
+            if (i < baseElements.length) {
+                const el = baseElements[i];
+                protectedSet.items.push({ active: true, values: [el.s, `__${el.n}${el.s}`, el.name, el.en, el.n.toString()] });
+            } else {
+                protectedSet.items.push({ active: false, values: ["", "", "", "", ""] });
+            }
+        }
+
+        const defSet = {
+            id: generateId(), title: "水素～亜鉛", isProtected: false,
+            modes: ["元素名", "元素記号", "英語名", "単体の性質", "由来・エピソード"], items: []
+        };
+        const defaultElements = [
+            { n: 1, s: "H", name: "水素", en: "Hydrogen", props: "無色無臭の気体//最も軽い元素//燃焼して水に", episode: "水を生むものという意味のギリシャ語に由来。" },
+            { n: 2, s: "He", name: "ヘリウム", en: "Helium", props: "無色無臭の気体//希ガスで不活性//太陽で発見", episode: "太陽で発見された。名は太陽神に由来。" },
+            { n: 3, s: "Li", name: "リチウム", en: "Lithium", props: "銀白色の金属//密度最小の金属//電池の材料", episode: "石を意味するギリシャ語リトスに由来。" },
+            { n: 4, s: "Be", name: "ベリリウム", en: "Beryllium", props: "銀白色の金属//毒性がある//銅との合金材料", episode: "名は緑柱石に由来。昔は甘いと言われた。" },
+            { n: 5, s: "B", name: "ホウ素", en: "Boron", props: "黒灰色の固体//極めて高硬度//耐熱ガラス原料", episode: "昔から洗剤などに使われるホウ砂に由来。" },
+            { n: 6, s: "C", name: "炭素", en: "Carbon", props: "同素体が豊富//有機物の骨格//宝石や鉛筆", episode: "木炭を意味するラテン語カルボに由来。" },
+            { n: 7, s: "N", name: "窒素", en: "Nitrogen", props: "無色無臭の気体//空気の約８割//液体は冷却用", episode: "ギリシャ語の硝石を生むものに由来する。" },
+            { n: 8, s: "O", name: "酸素", en: "Oxygen", props: "無色無臭の気体//助燃性を持つ//生物の呼吸に", episode: "酸を造るものと誤認されたのが名の由来。" },
+            { n: 9, s: "F", name: "フッ素", en: "Fluorine", props: "淡黄色の気体//猛毒・酸化力強//水と激しく反応", episode: "流れやすいを意味するラテン語に由来。" },
+            { n: 10, s: "Ne", name: "ネオン", en: "Neon", props: "無色無臭の気体//放電で赤く光る//希ガスで不活性", episode: "新しいを意味するギリシャ語ネオスに由来。" },
+            { n: 11, s: "Na", name: "ナトリウム", en: "Sodium", props: "銀白色の金属//炎色反応は黄色//水と激しく反応", episode: "名は炭酸ソーダの天然鉱物に由来する。" },
+            { n: 12, s: "Mg", name: "マグネシウム", en: "Magnesium", props: "銀白色の金属//燃焼時に強い光//熱水と反応する", episode: "ギリシャの地名マグネシアに由来する。" },
+            { n: 13, s: "Al", name: "アルミニウム", en: "Aluminum", props: "軽い両性金属//銀白色の金属//一円玉の原料", episode: "明ばんを意味する語アルメンに由来する。" },
+            { n: 14, s: "Si", name: "ケイ素", en: "Silicon", props: "灰黒色の固体//半導体の性質//岩石の主成分", episode: "火打石を意味するラテン語に由来する。" },
+            { n: 15, s: "P", name: "リン", en: "Phosphorus", props: "同素体が重要//赤リンは無毒//黄リンは毒発火", episode: "光を運ぶものという意味の名を持つ。" },
+            { n: 16, s: "S", name: "硫黄", en: "Sulfur", props: "黄色の固体//同素体を持つ//火薬の原料", episode: "燃える石という意味の語に由来する。" },
+            { n: 17, s: "Cl", name: "塩素", en: "Chlorine", props: "黄緑色の気体//刺激臭・猛毒//漂白殺菌作用", episode: "黄緑色を意味するギリシャ語に由来する。" },
+            { n: 18, s: "Ar", name: "アルゴン", en: "Argon", props: "無色無臭の気体//空気に約１％//電球の封入ガス", episode: "働かないを意味するギリシャ語に由来。" },
+            { n: 19, s: "K", name: "カリウム", en: "Potassium", props: "銀白色の金属//炎色反応は赤紫//水と激しく反応", episode: "木灰から得られるカリに由来する。" },
+            { n: 20, s: "Ca", name: "カルシウム", en: "Calcium", props: "銀白色の金属//炎色反応は橙赤//アルカリ土類", episode: "石灰を意味するラテン語カルクスに由来。" },
+            { n: 21, s: "Sc", name: "スカンジウム", en: "Scandium", props: "銀白色の金属//遷移元素の最初//アルミ等と合金", episode: "スカンジナビア半島のラテン語名に由来。" },
+            { n: 22, s: "Ti", name: "チタン", en: "Titanium", props: "銀白色の金属//軽くて高強度//優れた耐食性", episode: "ギリシャ神話の巨神タイタンに由来する。" },
+            { n: 23, s: "V", name: "バナジウム", en: "Vanadium", props: "銀白色の金属//鋼の添加剤//五酸化物は触媒", episode: "北欧神話の美の女神バナジスに由来する。" },
+            { n: 24, s: "Cr", name: "クロム", en: "Chromium", props: "銀白色の金属//極めて硬い//メッキに多用", episode: "化合物が多彩な色を持つため色に由来。" },
+            { n: 25, s: "Mn", name: "マンガン", en: "Manganese", props: "銀白色の金属//乾電池の原料//鋼の強度向上", episode: "磁石と混同された歴史がある地名由来。" },
+            { n: 26, s: "Fe", name: "鉄", en: "Iron", props: "銀白色の金属//強磁性を持つ//地殻に豊富存在", episode: "剣を意味する古語やラテン語に由来する。" },
+            { n: 27, s: "Co", name: "コバルト", en: "Cobalt", props: "銀白色の金属//強磁性を持つ//青色顔料の原料", episode: "坑道の精霊コボルトが名前の由来。" },
+            { n: 28, s: "Ni", name: "ニッケル", en: "Nickel", props: "銀白色の金属//耐食性が高い//硬貨や合金に", episode: "偽の銅を意味する山の精の名に由来する。" },
+            { n: 29, s: "Cu", name: "銅", en: "Copper", props: "赤色の光沢//導電性が高い//展延性に富む", episode: "産地のキプロス島のラテン語名に由来。" },
+            { n: 30, s: "Zn", name: "亜鉛", en: "Zinc", props: "銀白色の金属//両性金属//トタンのメッキ", episode: "鋸歯状の突起を意味するドイツ語に由来。" }
+        ];
+        for (let i = 0; i < 30; i++) {
+            if (i < defaultElements.length) {
+                const el = defaultElements[i];
+                defSet.items.push({ active: true, values: [el.name, `__${el.n}${el.s}`, el.en, el.props, el.episode] });
+            } else {
+                defSet.items.push({ active: false, values: ["", "", "", "", ""] });
+            }
+        }
+        return { activeIndex: 0, sets: [protectedSet, defSet] };
+    }
+
+    function loadConfig() {
+        let conf = localStorage.getItem(STORAGE_KEY);
+        if (conf) {
+            try { 
+                const parsed = JSON.parse(conf);
+                let loadedData = null;
+                
+                if (parsed.appIdentifier === APP_IDENTIFIER && parsed.data) {
+                    loadedData = parsed.data;
+                } else if (parsed && parsed.sets && Array.isArray(parsed.sets)) {
+                    loadedData = parsed;
+                }
+                
+                if (loadedData) {
+                    loadedData.sets.forEach(s => { if(!s.id) s.id = generateId(); });
+                    
+                    // 既存データ保持のまま、保護セットのみ最新定義で上書き更新
+                    const freshDefaults = createDefaultConfig();
+                    const freshProtected = freshDefaults.sets.find(s => s.isProtected);
+                    const protectedIdx = loadedData.sets.findIndex(s => s.isProtected);
+                    
+                    if (protectedIdx !== -1 && freshProtected) {
+                        loadedData.sets[protectedIdx].modes = freshProtected.modes;
+                        loadedData.sets[protectedIdx].items = freshProtected.items;
+                    }
+                    
+                    return loadedData;
+                }
+            } catch(e) { console.error("Data load error", e); }
+        }
+        return createDefaultConfig();
+    }
+
+    function saveConfig() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            appIdentifier: APP_IDENTIFIER,
+            version: "1.0",
+            data: config
+        }));
+    }
+
+    // ==========================================
+    // 3. 文字列計算・変換（化学式ルール）
+    // ==========================================
+    function calcPoint(rawStr) {
+        if(!rawStr) return 0;
+        let str = rawStr.replace(/\/\//g, '').replace(/<>/g, '').replace(/>/g, '').replace(/_{1,2}/g, '').replace(/\^/g, '');
+        let pt = 0;
+        for(let i=0; i<str.length; i++) pt += (str.charCodeAt(i) <= 0x7F) ? 1 : 2;
+        return pt;
+    }
+
+    function isEffectivelyEmptySegment(seg) {
+        if (seg === null || seg === undefined) return true;
+        // ゼロ幅系（念のため）と通常空白を除去して判定
+        const cleaned = String(seg).replace(/[\u200B\u200C\u200D\uFEFF]/g, '').trim();
+        return cleaned === '';
+    }
+
+    function formatChemicalFormula(text) {
+        if (!text) return "";
+        // //の前後が空だと空行が混ざって余計に改行されるため、空要素は除外する
+        let lines = text.split('//').filter(part => !isEffectivelyEmptySegment(part));
+        return lines.map(part => {
+            let f = part;
+            f = f.replace(/<>/g, '⇌').replace(/>/g, '→');
+            f = f.replace(/\^([\d\+\-]+)/g, (match, p1) => {
+                const fw = p1.replace(/[0-9]/g, s => String.fromCharCode(s.charCodeAt(0) + 0xFEE0)).replace(/\+/g, '＋').replace(/\-/g, '－');
+                return `<sup>${fw}</sup>`;
+            });
+            f = f.replace(/_{1,2}(\d+)/g, '<span class="subscript-number">$1</span>');
+            f = f.replace(/([A-Za-z\)])(\d+)/g, "$1<sub>$2</sub>");
+            return f;
+        }).join('<br>');
+    }
+
+    const displayVal = document.getElementById('current-value');
+    let singleLineLimitWidth = null;
+    const singleLineMeasureEl = document.createElement('span');
+    singleLineMeasureEl.style.position = 'absolute';
+    singleLineMeasureEl.style.visibility = 'hidden';
+    singleLineMeasureEl.style.pointerEvents = 'none';
+    singleLineMeasureEl.style.left = '-9999px';
+    singleLineMeasureEl.style.top = '-9999px';
+    singleLineMeasureEl.className = 'layout-1line';
+    document.body.appendChild(singleLineMeasureEl);
+
+    function measureDisplayWidthFromHtml(html) {
+        const cs = getComputedStyle(displayVal);
+        singleLineMeasureEl.style.fontFamily = cs.fontFamily;
+        singleLineMeasureEl.style.fontSize = cs.fontSize;
+        singleLineMeasureEl.style.fontWeight = cs.fontWeight;
+        singleLineMeasureEl.style.lineHeight = cs.lineHeight;
+        singleLineMeasureEl.style.letterSpacing = cs.letterSpacing;
+        singleLineMeasureEl.style.padding = cs.padding;
+        singleLineMeasureEl.innerHTML = html || '';
+        return Math.ceil(singleLineMeasureEl.getBoundingClientRect().width);
+    }
+
+    function getSingleLineLimitWidth() {
+        if (singleLineLimitWidth !== null) return singleLineLimitWidth;
+        // 「全角8文字」を1行表示の基準幅とする
+        // 文字種（特にカタカナ）によって実幅が微妙に変わるため、代表文字の最大値で吸収する
+        const probeChars = ['ア','カ','サ','タ','ナ','ハ','マ','ヤ','ラ','ワ','ン','ガ','パ','ー','ウ','オ','ク','ゲ'];
+        const widths = probeChars.map(ch => measureDisplayWidthFromHtml(ch.repeat(8)));
+        singleLineLimitWidth = Math.ceil(Math.max(...widths) * 1.02); // 少し余裕を持つ
+        return singleLineLimitWidth;
+    }
+    
+    function prepareLayoutClass(rawText) {
+        displayVal.classList.remove('layout-1line', 'layout-multiline');
+        const manualLines = String(rawText || '').split('//').filter(p => !isEffectivelyEmptySegment(p));
+        if (manualLines.length >= 2) {
+            displayVal.classList.add('layout-multiline');
+            displayVal.style.whiteSpace = 'normal';
+            displayVal.style.maxWidth = '9.5em';
+            return;
+        }
+        // メイン画面表示は従来どおり 8文字相当までを1行扱い
+        const pt = calcPoint(rawText || '');
+        if (pt <= DISPLAY_SINGLE_LINE_PT) {
+            displayVal.classList.add('layout-1line');
+            // CSSの競合/環境差を最後の保険として inline で上書き
+            displayVal.style.whiteSpace = 'nowrap';
+            displayVal.style.maxWidth = 'none';
+            displayVal.style.overflowWrap = 'normal';
+            displayVal.style.wordBreak = 'normal';
+        } else {
+            displayVal.classList.add('layout-multiline');
+            displayVal.style.whiteSpace = 'normal';
+            displayVal.style.maxWidth = '9.5em';
+            displayVal.style.overflowWrap = 'break-word';
+            displayVal.style.wordBreak = 'normal';
+        }
+    }
+
+    function adjustScaleToFit() {
+        displayVal.style.transform = 'scale(1)';
+        const cw = displayVal.offsetWidth, ch = displayVal.offsetHeight;
+        if(cw === 0 || ch === 0) return;
+        const mainContainer = document.getElementById('current-value-container');
+        let scale = Math.min((mainContainer.clientWidth * 0.9) / cw, (mainContainer.clientHeight * 0.9) / ch);
+        displayVal.style.transform = `scale(${Math.min(scale, 3)})`;
+    }
+
+    // ==========================================
+    // 4. 音声・フルスクリーン
+    // ==========================================
+    const AudioContextDef = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null; let audioAllowed = false;
+    function unlockAudio() {
+        if (!audioCtx) audioCtx = new AudioContextDef();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        audioAllowed = true;
+    }
+    window.addEventListener('click', unlockAudio, { once: true });
+    window.addEventListener('keydown', unlockAudio, { once: true });
+    
+    function playTone(freq, duration, type = 'sine', vol = 0.3) {
+        if (!audioAllowed) return; 
+        if (!audioCtx) audioCtx = new AudioContextDef();
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
+
+    // ==========================================
+    // 5. ビンゴロジック (ハイパフォーマンス版)
+    // ==========================================
+    let shuffled = []; let currentIndex = -1; let isStarted = false; let isAnimating = false;
+    let currentModeIndex = 0; let activeSet = null;
+
+    const startBtn = document.getElementById('start-overlay-btn');
+    const endResetBtn = document.getElementById('end-reset-btn');
+    const mainContainer = document.getElementById('current-value-container');
+
+    document.getElementById('fs-btn').addEventListener('click', () => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+        else document.exitFullscreen();
+    });
+
+    function applyConfigToMain() {
+        activeSet = config.sets[config.activeIndex];
+        // ★ タイトルの先頭に「▼ 」を付与
+        document.getElementById('set-title-display').innerText = "▼ " + (activeSet.title || "無題");
+        const modeSelector = document.getElementById('mode-selector');
+        modeSelector.innerHTML = "";
+        let firstValidMode = -1;
+        activeSet.modes.forEach((mName, idx) => {
+            if (mName.trim() !== "") {
+                if (firstValidMode === -1) firstValidMode = idx;
+                const btn = document.createElement('button');
+                btn.className = 'mode-btn'; btn.innerText = mName; btn.dataset.index = idx;
+                btn.onclick = (e) => { e.stopPropagation(); changeMode(idx); };
+                modeSelector.appendChild(btn);
+            }
+        });
+        resetBingo();
+        if(firstValidMode !== -1) changeMode(firstValidMode);
+    }
+
+    function resetBingo() {
+        shuffled = []; currentIndex = -1; isStarted = false; isAnimating = false;
+        startBtn.style.display = 'block'; mainContainer.style.display = 'none'; endResetBtn.style.display = 'none';
+        document.getElementById('page-number').innerText = "";
+        document.getElementById('history-list').innerHTML = "";
+        displayVal.classList.remove('layout-1line', 'layout-multiline', 'shaking', 'shuffling-text', 'animating-text');
+    }
+
+    document.getElementById('reset-trigger').onclick = () => { if(!isAnimating) customConfirm("最初からやり直しますか？", yes => { if(yes) resetBingoKeepingMode(); }); };
+    endResetBtn.onclick = (e) => { e.stopPropagation(); resetBingoKeepingMode(); };
+
+    function resetBingoKeepingMode() {
+        resetBingo();
+        if(activeSet) {
+            let mIdx = activeSet.modes[currentModeIndex].trim() !== "" ? currentModeIndex : activeSet.modes.findIndex(m => m.trim() !== "");
+            changeMode(mIdx !== -1 ? mIdx : 0);
+        }
+    }
+
+    function changeMode(idx) {
+        currentModeIndex = idx;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.index) === idx));
+        if (isStarted && currentIndex >= 0) {
+            DisplayModule.prepareLayoutClass(shuffled[currentIndex].values[currentModeIndex] || "");
+            displayVal.innerHTML = formatChemicalFormula(shuffled[currentIndex].values[currentModeIndex] || "");
+            adjustScaleToFit();
+        }
+        updateHistory();
+        playTone(660, 0.1, 'sine', 0.15);
+    }
+
+    function handleAction() {
+        if (isAnimating || sysModal.style.display === 'flex' || document.getElementById('settings-overlay').style.display === 'flex' || document.getElementById('set-selector-modal').style.display === 'flex') return;
+        if (!isStarted) startBingo();
+        else if (currentIndex >= shuffled.length - 1) {
+            mainContainer.style.display = 'none'; endResetBtn.style.display = 'block';
+            document.getElementById('page-number').innerText = `全語句 (${shuffled.length}) 完了`;
+        } else nextStep();
+    }
+
+    function startBingo() {
+        const activeItems = activeSet.items.filter(i => i.active && i.values.some(v => v !== ""));
+        if(activeItems.length === 0) { customAlert("表示できるカードがありません。"); return; }
+        shuffled = [...activeItems].sort(() => Math.random() - 0.5);
+        isStarted = true; startBtn.style.display = 'none'; mainContainer.style.display = 'flex';
+        nextStep();
+    }
+
+    function nextStep() {
+        isAnimating = true;
+        
+        // パフォーマンス最適化: 正規表現のDOMキャッシュを作成
+        const pool = shuffled.filter(i => (i.values[currentModeIndex] || "").trim() !== "");
+        const p = pool.length > 0 ? pool : shuffled;
+        const poolFormatted = p.map(item => formatChemicalFormula(item.values[currentModeIndex] || ""));
+        
+        // ターゲットとなる最終カードのレイアウトクラスを事前適用
+        const finalRawText = shuffled[currentIndex + 1].values[currentModeIndex] || "";
+        DisplayModule.prepareLayoutClass(finalRawText);
+        
+        // animating-text (will-change) を付与し、巨大フォントを安全倍率で表示
+        displayVal.classList.add('shuffling-text', 'animating-text');
+        displayVal.style.transform = 'scale(0.95)';
+        
+        let count = 0; 
+        // ★ 神懸かった緩急: 16枚目（インデックス15）は24回(長く)、それ以外は18回(テンポ良く)
+        const is16thCard = (currentIndex + 1 === 15);
+        const maxCount = is16thCard ? 24 : 18;
+        
+        let lastTime = 0;
+        let currentInterval = 40;
+
+        function animLoop(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const progress = timestamp - lastTime;
+
+            if (progress >= currentInterval) {
+                lastTime = timestamp;
+                displayVal.innerHTML = poolFormatted[Math.floor(Math.random() * poolFormatted.length)];
+                
+                // 進行度（0.0 ～ 1.0）
+                const progressRatio = count / maxCount;
+                
+                // 【音の演出】150Hzの低音からスタートし、二次関数で高音へ駆け上がる
+                const easeInPitch = Math.pow(progressRatio, 2);
+                const pitch = 150 + (easeInPitch * 800);
+                playTone(pitch, 0.05, 'triangle', 0.3);
+                
+                count++;
+                
+                // 【時間の演出】三次関数で後半に急ブレーキをかける
+                const easeOutTime = Math.pow(count / maxCount, 3);
+                currentInterval = 40 + (easeOutTime * 360); 
+            }
+
+            if (count < maxCount) {
+                requestAnimationFrame(animLoop);
+            } else {
+                // 確定の瞬間: GPUキャッシュを剥がし、超高解像度でレンダリング
+                displayVal.classList.remove('shuffling-text', 'animating-text');
+                currentIndex++;
+                displayVal.innerHTML = formatChemicalFormula(finalRawText);
+                
+                // 確定したときのみサイズをピタッと調整する
+                adjustScaleToFit();
+                
+                document.getElementById('page-number').innerText = `${currentIndex + 1} / ${shuffled.length}`;
+                updateHistory();
+                
+                // 確定音
+                playTone(880, 0.5, 'sine', 0.3); 
+                setTimeout(() => playTone(1320, 0.4, 'sine', 0.25), 100); 
+                isAnimating = false;
+            }
+        }
+        requestAnimationFrame(animLoop);
+    }
+
+    function updateHistory() {
+        if (currentIndex < 0) return;
+        const hl = document.getElementById('history-list'); hl.innerHTML = "";
+        const frag = document.createDocumentFragment();
+        
+        // 【LIFO】最新のものが先頭にくるように逆順ループ
+        for (let i = currentIndex; i >= 0; i--) {
+            const li = document.createElement('li'); li.className = 'history-item';
+            if (i === currentIndex) li.classList.add('active');
+            li.innerHTML = formatChemicalFormula(shuffled[i].values[currentModeIndex] || "");
+            frag.appendChild(li);
+        }
+        hl.appendChild(frag);
+        document.querySelector('.history').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    window.addEventListener('resize', () => {
+        singleLineLimitWidth = null;
+        if (isStarted && !isAnimating) adjustScaleToFit();
+    });
+    document.getElementById('main-display').addEventListener('click', (e) => { if (e.target.tagName !== 'BUTTON') handleAction(); });
+    startBtn.onclick = handleAction;
+
+    window.addEventListener('keydown', (e) => {
+        if(document.getElementById('settings-overlay').style.display === 'flex' || sysModal.style.display === 'flex' || document.getElementById('set-selector-modal').style.display === 'flex') return; 
+        if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); handleAction(); }
+        else if (['Digit1','Digit2','Digit3','Digit4','Digit5'].includes(e.code)) {
+            const idx = parseInt(e.code.replace('Digit','')) - 1;
+            const btns = document.querySelectorAll('.mode-btn');
+            if (idx < btns.length) changeMode(parseInt(btns[idx].dataset.index));
+        }
+    });
+
+    // ==========================================
+    // 5.5. セット選択モーダルロジック
+    // ==========================================
+    document.getElementById('set-title-display').addEventListener('click', showSetSelector);
+
+    function showSetSelector() {
+        if (sysModal.style.display === 'flex' || document.getElementById('settings-overlay').style.display === 'flex') return;
+        
+        const listContainer = document.getElementById('set-selector-list');
+        listContainer.innerHTML = '';
+        
+        config.sets.forEach((set, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'set-selector-btn' + (idx === config.activeIndex ? ' active-set' : '');
+            
+            const titleSpan = document.createElement('span');
+            titleSpan.innerText = set.title || "無題";
+            btn.appendChild(titleSpan);
+            
+            if (set.isProtected) {
+                const badgeSpan = document.createElement('span');
+                badgeSpan.style.fontSize = '12px';
+                badgeSpan.style.color = '#999';
+                badgeSpan.innerText = '(保護)';
+                btn.appendChild(badgeSpan);
+            }
+            
+            btn.onclick = () => {
+                document.getElementById('set-selector-modal').style.display = 'none';
+                if (idx === config.activeIndex) return;
+                
+                // 終了画面が表示されていなければ進行中とみなす
+                const isBingoInProgress = isStarted && endResetBtn.style.display !== 'block';
+                if (isBingoInProgress) {
+                    customConfirm("ビンゴが進行中ですが、セットを切り替えてリセットしてもよろしいですか？", yes => {
+                        if (yes) switchSet(idx);
+                    });
+                } else {
+                    switchSet(idx);
+                }
+            };
+            listContainer.appendChild(btn);
+        });
+        
+        document.getElementById('set-selector-modal').style.display = 'flex';
+    }
+
+    function switchSet(idx) {
+        config.activeIndex = idx;
+        saveConfig();
+        applyConfigToMain();
+    }
+    
+    document.getElementById('set-selector-close').addEventListener('click', () => {
+        document.getElementById('set-selector-modal').style.display = 'none';
+    });
+
+    // ==========================================
+    // 6. 設定画面と各種機能
+    // ==========================================
+    const settingsOverlay = document.getElementById('settings-overlay');
+    const tbody = document.getElementById('settings-tbody');
+    let editingIndex = config.activeIndex;
+    const SETTINGS_LAYOUT = {
+        ROW_COUNT: 30,
+        MODE_COUNT: 5
+    };
+    const CELL_VALIDATION = {
+        MAX_TOTAL_PT: 42,   // 全角21文字相当
+        MAX_LINE_PT: 14,    // 全角7文字相当（1行）
+        MAX_LINES: 3
+    };
+    const DISPLAY_SINGLE_LINE_PT = 16; // メイン画面表示は従来どおり（全角8文字相当）
+    const BINGO_RULES = {
+        MIN_ACTIVE_CARDS: 5,
+        RECOMMENDED_MIN: 22,
+        RECOMMENDED_MAX: 24
+    };
+
+    for (let i = 0; i < SETTINGS_LAYOUT.ROW_COUNT; i++) {
+        const tr = document.createElement('tr'); tr.id = `set-row-${i}`;
+        tr.innerHTML = `<td class="num-col">${i + 1}</td><td class="check-col"><input type="checkbox" class="chk-active"></td>
+            <td><input type="text" class="val-m0 item-input"></td><td><input type="text" class="val-m1 item-input"></td>
+            <td><input type="text" class="val-m2 item-input"></td><td><input type="text" class="val-m3 item-input"></td>
+            <td><input type="text" class="val-m4 item-input"></td>`;
+        tbody.appendChild(tr);
+    }
+
+    // キーボードによるセル移動（案A）
+    tbody.addEventListener('keydown', (e) => {
+        if (e.isComposing) return; // IME変換中は無視
+        
+        const target = e.target;
+        if (!target.classList.contains('item-input')) return;
+
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Enter') {
+            e.preventDefault(); 
+            
+            const tr = target.closest('tr');
+            const td = target.closest('td');
+            if (!tr || !td) return;
+            
+            const colIndex = Array.from(tr.children).indexOf(td);
+            const rowIndex = Array.from(tbody.children).indexOf(tr);
+            
+            let nextRowIndex = rowIndex;
+            if (e.key === 'ArrowUp') {
+                nextRowIndex = Math.max(0, rowIndex - 1);
+            } else if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                nextRowIndex = Math.min(tbody.children.length - 1, rowIndex + 1);
+            }
+            
+            if (nextRowIndex !== rowIndex) {
+                const nextTr = tbody.children[nextRowIndex];
+                const nextInput = nextTr.children[colIndex].querySelector('input');
+                if (nextInput && !nextInput.readOnly) {
+                    nextInput.focus();
+                }
+            }
+        }
+    });
+
+    // ★ 賢いエラーシミュレーションと動的チップ
+    function evaluateCellMetrics(rawValue) {
+        const val = rawValue || "";
+        let totalPt = 0;
+        let totalLines = 0;
+        const parts = val.split('//');
+        parts.forEach(part => {
+            // 空要素は空行なので行数には数えない
+            if (isEffectivelyEmptySegment(part)) return;
+            const pt = calcPoint(part);
+            totalPt += pt;
+            const wrappedLines = Math.max(1, Math.ceil(pt / CELL_VALIDATION.MAX_LINE_PT));
+            totalLines += wrappedLines;
+        });
+        const isError = totalPt > CELL_VALIDATION.MAX_TOTAL_PT || totalLines > CELL_VALIDATION.MAX_LINES;
+        return { totalPt, totalLines, isError };
+    }
+
+    function createEmptyItems() {
+        return Array(SETTINGS_LAYOUT.ROW_COUNT).fill(null).map(() => ({
+            active: false,
+            values: Array(SETTINGS_LAYOUT.MODE_COUNT).fill("")
+        }));
+    }
+
+    function checkCellVal(input) {
+        const val = input.value;
+        if (!val) {
+            input.classList.remove('error-cell');
+            input.title = "";
+            return;
+        }
+        const { totalPt, totalLines, isError } = evaluateCellMetrics(val);
+
+        let errMsg = [];
+        if (totalPt > CELL_VALIDATION.MAX_TOTAL_PT) errMsg.push(`文字数オーバー: 現在${Math.ceil(totalPt/2)}文字（21文字以内推奨）`);
+        if (totalLines > CELL_VALIDATION.MAX_LINES) errMsg.push(`行数オーバー: 自動折り返し含め${totalLines}行（3行以内推奨・1行は全角7文字以内）`);
+
+        if (errMsg.length > 0) {
+            input.classList.add('error-cell');
+            input.title = "⚠️ エラー:\n" + errMsg.join('\n');
+        } else {
+            input.classList.remove('error-cell');
+            input.title = "";
+        }
+    }
+
+    // ============================
+    // 機能別モジュール定義
+    // （単一HTML内で責務を分けるための構造化）
+    // ============================
+    const ValidationModule = Object.freeze({
+        evaluateCellMetrics,
+        checkCellVal
+    });
+    const DisplayModule = Object.freeze({
+        prepareLayoutClass,
+        adjustScaleToFit
+    });
+    const ImportExportModule = Object.freeze({
+        downloadJSON,
+        showImportPreviewModal
+    });
+
+    const inputWidthMeasureEl = document.createElement('span');
+    inputWidthMeasureEl.style.position = 'absolute';
+    inputWidthMeasureEl.style.visibility = 'hidden';
+    inputWidthMeasureEl.style.pointerEvents = 'none';
+    inputWidthMeasureEl.style.left = '-9999px';
+    inputWidthMeasureEl.style.top = '-9999px';
+    inputWidthMeasureEl.style.whiteSpace = 'pre';
+    document.body.appendChild(inputWidthMeasureEl);
+
+function getInputTargetWidth(input) {
+        if (!input) return;
+        const cs = getComputedStyle(input);
+        inputWidthMeasureEl.style.font = cs.font;
+        inputWidthMeasureEl.textContent = input.value || input.placeholder || '';
+        const measuredWidth = Math.ceil(inputWidthMeasureEl.getBoundingClientRect().width);
+
+        const minW = parseFloat(cs.minWidth) || 80;
+        // 左右のpaddingに加えて、入力時のキャレット（カーソル）が見切れないよう8pxのマージンを確保
+        const horizontalPadding = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0) + 8;
+        
+        return Math.max(minW, measuredWidth + horizontalPadding);
+    }
+
+    function getDeckColumnIndex(input) {
+        if (!input) return -1;
+        if (input.id && input.id.startsWith('head-m')) return parseInt(input.id.replace('head-m', ''), 10);
+        const cls = Array.from(input.classList).find(c => c.startsWith('val-m'));
+        return cls ? parseInt(cls.replace('val-m', ''), 10) : -1;
+    }
+
+    function syncDeckColumnWidth(colIndex) {
+        if (Number.isNaN(colIndex) || colIndex < 0 || colIndex >= SETTINGS_LAYOUT.MODE_COUNT) return;
+        const col = document.getElementById(`deck-col-${colIndex}`);
+        if (!col) return;
+        const headInput = document.getElementById(`head-m${colIndex}`);
+        const itemInputs = Array.from(document.querySelectorAll(`.val-m${colIndex}`));
+        const targets = [headInput, ...itemInputs].filter(Boolean).map(inp => getInputTargetWidth(inp));
+        if (!targets.length) return;
+        const nextWidth = Math.ceil(Math.max(...targets));
+        col.style.width = `${nextWidth}px`;
+        [headInput, ...itemInputs].filter(Boolean).forEach(inp => { inp.style.width = `${nextWidth}px`; });
+    }
+
+    function autoSizeInput(input) {
+        if (!input) return;
+        const colIndex = getDeckColumnIndex(input);
+        if (colIndex !== -1) {
+            syncDeckColumnWidth(colIndex);
+            return;
+        }
+        const nextWidth = getInputTargetWidth(input);
+        if (nextWidth) input.style.width = `${nextWidth}px`;
+    }
+    function initInputAutoSize() {
+        for (let i = 0; i < SETTINGS_LAYOUT.MODE_COUNT; i++) syncDeckColumnWidth(i);
+    }
+    document.querySelectorAll('.head-input, .item-input').forEach(i => i.addEventListener('input', e => {
+        ValidationModule.checkCellVal(e.target);
+        autoSizeInput(e.target);
+    }));
+    document.querySelectorAll('.head-input, .item-input').forEach(input => {
+        input.addEventListener('focus', () => autoSizeInput(input));
+        input.addEventListener('click', () => autoSizeInput(input));
+        input.addEventListener('keyup', () => autoSizeInput(input));
+        input.addEventListener('change', () => autoSizeInput(input));
+    });
+
+    function populateSettingsUI() {
+        const domSelect = document.getElementById('set-select');
+        domSelect.innerHTML = "";
+        config.sets.forEach((s, idx) => {
+            const opt = document.createElement('option'); opt.value = idx;
+            opt.text = s.title + (s.isProtected ? " (保護)" : "");
+            if (idx === editingIndex) opt.selected = true;
+            domSelect.appendChild(opt);
+        });
+
+        const set = config.sets[editingIndex];
+        const domTitle = document.getElementById('set-title-input');
+        domTitle.value = set.title; domTitle.readOnly = set.isProtected;
+        document.getElementById('btn-del-set').style.display = set.isProtected ? 'none' : 'flex';
+
+        for(let i=0; i<SETTINGS_LAYOUT.MODE_COUNT; i++) {
+            const hi = document.getElementById(`head-m${i}`);
+            hi.value = set.modes[i] || ""; hi.readOnly = set.isProtected; ValidationModule.checkCellVal(hi);
+            autoSizeInput(hi);
+        }
+        for (let i = 0; i < SETTINGS_LAYOUT.ROW_COUNT; i++) {
+            const tr = document.getElementById(`set-row-${i}`);
+            const item = set.items[i] || { active: false, values: ["","","","",""] };
+            const chk = tr.querySelector('.chk-active');
+            chk.checked = item.active; chk.disabled = set.isProtected;
+            for(let m=0; m<SETTINGS_LAYOUT.MODE_COUNT; m++) {
+                const inp = tr.querySelector(`.val-m${m}`);
+                inp.value = item.values[m] || ""; inp.readOnly = set.isProtected; ValidationModule.checkCellVal(inp);
+                autoSizeInput(inp);
+            }
+        }
+    }
+
+    document.getElementById('set-select').addEventListener('change', (e) => { editingIndex = parseInt(e.target.value); populateSettingsUI(); });
+    document.getElementById('check-all').addEventListener('change', e => {
+        if (config.sets[editingIndex].isProtected) return;
+        document.querySelectorAll('.chk-active').forEach(c => c.checked = e.target.checked);
+    });
+
+    document.getElementById('btn-new-set').onclick = () => {
+        config.sets.push({
+            id: generateId(),
+            title: "新規セット",
+            isProtected: false,
+            modes: ["名称", "", "", "", ""],
+            items: createEmptyItems()
+        });
+        editingIndex = config.sets.length - 1; populateSettingsUI();
+    };
+    document.getElementById('btn-copy-set').onclick = () => {
+        const cur = config.sets[editingIndex];
+        config.sets.push(JSON.parse(JSON.stringify({ ...cur, id: generateId(), title: (cur.title+'コピー').substring(0,15), isProtected: false })));
+        editingIndex = config.sets.length - 1; populateSettingsUI();
+    };
+    document.getElementById('btn-del-set').onclick = () => {
+        customConfirm('このセットを削除しますか？', yes => {
+            if(yes) { config.sets.splice(editingIndex, 1); editingIndex = 0; populateSettingsUI(); }
+        }, "削除する");
+    };
+
+    document.getElementById('btn-sort-sets').onclick = () => {
+        let html = '<div class="sort-list-container"><ul id="sort-list"></ul></div><p class="sort-help-text">ドラッグ＆ドロップで並べ替えます</p>';
+        customConfirm(html, yes => {
+            if(yes) {
+                const newSets = [];
+                document.querySelectorAll('#sort-list li').forEach(li => newSets.push(config.sets[parseInt(li.dataset.idx)]));
+                config.sets = newSets; editingIndex = 0; populateSettingsUI();
+            }
+        }, "並べ替えて保存", "キャンセル", true);
+        
+        const ul = document.getElementById('sort-list');
+        config.sets.forEach((set, idx) => {
+            const li = document.createElement('li'); li.draggable = true; li.dataset.idx = idx;
+            li.innerHTML = `<span class="drag-handle"><svg width="18" height="18" viewBox="0 0 24 24"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span> <span>${set.title} ${set.isProtected?'(保護)':''}</span>`;
+            li.ondragstart = e => { li.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; };
+            li.ondragend = () => li.classList.remove('dragging');
+            li.ondragover = e => {
+                e.preventDefault();
+                const dragging = document.querySelector('.dragging');
+                const siblings = [...ul.querySelectorAll('li:not(.dragging)')];
+                const next = siblings.find(s => e.clientY <= s.getBoundingClientRect().top + s.offsetHeight / 2);
+                ul.insertBefore(dragging, next);
+            };
+            ul.appendChild(li);
+        });
+    };
+
+    const pasteContainer = document.getElementById('paste-container');
+    const pasteArea = document.getElementById('paste-area');
+    document.getElementById('btn-toggle-paste').onclick = () => {
+        if (config.sets[editingIndex].isProtected) { customAlert("保護されたセットは編集できません。「複製」してください。"); return; }
+        pasteContainer.style.display = pasteContainer.style.display === 'block' ? 'none' : 'block';
+        if (pasteContainer.style.display === 'block') pasteArea.focus();
+    };
+
+    pasteArea.addEventListener('input', e => {
+        const text = e.target.value; e.target.value = ''; pasteContainer.style.display = 'none';
+        if(!text) return;
+        const rows = text.split(/\r\n|\n|\r/).map(r => r.split('\t'));
+        if(rows.length === 0) return;
+
+        let html = '<div class="paste-preview-wrap">';
+        html += '<p class="paste-preview-title">以下の内容で現在のデッキを上書きしますか？</p>';
+        html += '<table class="paste-preview-table"><tr>';
+        for(let c=0; c<SETTINGS_LAYOUT.MODE_COUNT; c++) html += `<th class="paste-preview-head">${rows[0][c] || `デッキ${c+1}(空)`}</th>`;
+        html += '</tr>';
+        
+        let errCnt = 0;
+        const parsedItems = [];
+        for(let i=0; i<SETTINGS_LAYOUT.ROW_COUNT; i++) {
+            const cols = rows[i+1] || [];
+            let rHtml = '<tr>';
+            let item = { active: false, values: ["","","","",""] };
+            for(let c=0; c<SETTINGS_LAYOUT.MODE_COUNT; c++) {
+                const val = (cols[c] || "").trim(); item.values[c] = val;
+                if(val) item.active = true;
+                const metrics = evaluateCellMetrics(val);
+                const isErr = metrics.isError;
+                
+                if(isErr) errCnt++;
+                const disp = formatChemicalFormula(val) || '-';
+                rHtml += `<td class="paste-preview-cell ${isErr ? 'error' : ''}">${disp}</td>`;
+            }
+            rHtml += '</tr>';
+            parsedItems.push(item);
+            if(item.active) html += rHtml;
+        }
+        html += '</table></div>';
+        if(errCnt>0) html += `<p class="paste-preview-warn">⚠️ 文字数や改行制限を超えているセルが ${errCnt} 箇所あります。</p>`;
+
+        // エラーがあっても強制インポート可能に
+        customConfirm(html, yes => {
+            if(yes) {
+                for(let c=0; c<SETTINGS_LAYOUT.MODE_COUNT; c++) { const hi = document.getElementById(`head-m${c}`); hi.value = rows[0][c] ? rows[0][c].trim() : ""; ValidationModule.checkCellVal(hi); }
+                initInputAutoSize();
+                for(let i=0; i<SETTINGS_LAYOUT.ROW_COUNT; i++) {
+                    const tr = document.getElementById(`set-row-${i}`);
+                    tr.querySelector('.chk-active').checked = parsedItems[i].active;
+                    for(let c=0; c<SETTINGS_LAYOUT.MODE_COUNT; c++) { const inp = tr.querySelector(`.val-m${c}`); inp.value = parsedItems[i].values[c]; ValidationModule.checkCellVal(inp); }
+                }
+                initInputAutoSize();
+            }
+        }, errCnt>0 ? "エラーのまま取り込んで修正" : "この内容で上書き", "キャンセル", true, true);
+    });
+
+    const exportMenu = document.getElementById('export-menu');
+    document.getElementById('btn-export').onclick = (e) => { e.stopPropagation(); exportMenu.classList.toggle('show'); };
+    document.addEventListener('click', () => exportMenu.classList.remove('show'));
+
+    function downloadJSON(dataObj, filename) {
+        const payload = {
+            appIdentifier: APP_IDENTIFIER,
+            version: "1.0",
+            exportDate: new Date().toISOString(),
+            data: dataObj
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+        URL.revokeObjectURL(url);
+    }
+    document.getElementById('export-single').onclick = () => ImportExportModule.downloadJSON(config.sets[editingIndex], `ElementBingo_${config.sets[editingIndex].title}.json`);
+    document.getElementById('export-all').onclick = () => ImportExportModule.downloadJSON(config, `ElementBingo_AllBackup.json`);
+
+    const fileInput = document.getElementById('import-file-input');
+    document.getElementById('btn-import').onclick = () => { fileInput.value = ''; fileInput.click(); };
+    fileInput.onchange = e => {
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            try {
+                const parsed = JSON.parse(ev.target.result);
+                if(parsed.appIdentifier !== APP_IDENTIFIER) { customAlert("このアプリの対応データではありません。"); return; }
+                const data = parsed.data;
+                const importSets = data.sets ? data.sets : [data]; 
+                ImportExportModule.showImportPreviewModal(importSets);
+            } catch(err) { customAlert("ファイルの読み込みに失敗しました。"); }
+        };
+        reader.readAsText(file);
+    };
+
+    function showImportPreviewModal(importSets) {
+        let html = `
+            <div class="import-preview-container">
+                <div class="import-list-pane" id="import-list-pane"></div>
+                <div class="import-detail-pane">
+                    <p class="import-preview-note">プレビュー (左で選択したセットのカード一覧)</p>
+                    <div class="preview-cards" id="import-preview-cards">左のリストからセットを選択してください</div>
+                </div>
+            </div>
+        `;
+        
+        customConfirm(html, yes => {
+            if(yes) {
+                const selections = document.querySelectorAll('.import-set-item');
+                selections.forEach((itemDom, i) => {
+                    const chk = itemDom.querySelector('input[type="checkbox"]');
+                    if(chk.checked) {
+                        const action = itemDom.querySelector('.conflict-action')?.value || 'add';
+                        const targetSet = importSets[i];
+                        targetSet.id = generateId(); 
+                        if(action === 'overwrite') {
+                            const idx = config.sets.findIndex(s => s.title === targetSet.title);
+                            if(idx !== -1) config.sets[idx] = targetSet; else config.sets.push(targetSet);
+                        } else {
+                            if(config.sets.some(s => s.title === targetSet.title)) targetSet.title += " (コピー)";
+                            config.sets.push(targetSet);
+                        }
+                    }
+                });
+                editingIndex = config.sets.length - 1; populateSettingsUI();
+            }
+        }, "選択したセットをインポート", "キャンセル", true, true);
+
+        const listPane = document.getElementById('import-list-pane');
+        const prevCards = document.getElementById('import-preview-cards');
+
+        importSets.forEach((set, i) => {
+            const isConflict = config.sets.some(s => s.title === set.title);
+            const div = document.createElement('div'); div.className = 'import-set-item';
+            
+            let inner = `<input type="checkbox" id="imp-chk-${i}" checked> <label for="imp-chk-${i}" class="import-set-label">${set.title}</label>`;
+            if(isConflict) {
+                inner += `<div class="conflict-warn">⚠️重複 <select class="conflict-action"><option value="add">別名で追加</option><option value="overwrite">上書き</option></select></div>`;
+            }
+            div.innerHTML = inner;
+            
+            div.addEventListener('click', (e) => {
+                if(e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT' && e.target.tagName !== 'LABEL') {
+                    const chk = div.querySelector('input'); chk.checked = !chk.checked;
+                }
+                document.querySelectorAll('.import-set-item').forEach(el => el.classList.remove('selected-for-preview'));
+                div.classList.add('selected-for-preview');
+                
+                const validModeIdx = set.modes.findIndex(m => m.trim() !== "");
+                const idxToUse = validModeIdx !== -1 ? validModeIdx : 0;
+                prevCards.innerHTML = '';
+                set.items.filter(item=>item.active).forEach(item => {
+                    const v = item.values[idxToUse];
+                    if(v) prevCards.innerHTML += `<div class="preview-card">${formatChemicalFormula(v)}</div>`;
+                });
+            });
+            listPane.appendChild(div);
+        });
+        if(importSets.length > 0) listPane.firstElementChild.click();
+    }
+
+    document.getElementById('open-settings-btn').onclick = () => { editingIndex = config.activeIndex; populateSettingsUI(); settingsOverlay.style.display = 'flex'; };
+    document.getElementById('close-settings-btn').onclick = () => settingsOverlay.style.display = 'none';
+    
+    document.getElementById('save-settings-btn').onclick = () => {
+        if(document.querySelectorAll('.error-cell').length > 0) { customAlert("赤枠のエラー箇所を修正してください。"); return; }
+        const set = config.sets[editingIndex];
+        
+        if (!set.isProtected) {
+            const t = document.getElementById('set-title-input').value.trim();
+            if(!t) { customAlert("タイトルを入力してください"); return; }
+            set.title = t;
+            
+            let hasMode = false;
+            for(let i=0; i<SETTINGS_LAYOUT.MODE_COUNT; i++) { set.modes[i] = document.getElementById(`head-m${i}`).value.trim(); if(set.modes[i]) hasMode = true; }
+            if(!hasMode) { customAlert("少なくとも1つのデッキ名を設定してください"); return; }
+
+            let activeCount = 0;
+            for (let i = 0; i < SETTINGS_LAYOUT.ROW_COUNT; i++) {
+                const tr = document.getElementById(`set-row-${i}`);
+                set.items[i].active = tr.querySelector('.chk-active').checked;
+                for(let m=0; m<SETTINGS_LAYOUT.MODE_COUNT; m++) set.items[i].values[m] = tr.querySelector(`.val-m${m}`).value.trim();
+                if(set.items[i].active && set.items[i].values.some(v=>v!=="")) activeCount++;
+            }
+
+            if (activeCount < BINGO_RULES.MIN_ACTIVE_CARDS) { customAlert(`カードが少なすぎます（現在${activeCount}個）。最低${BINGO_RULES.MIN_ACTIVE_CARDS}個必要です。`); return; }
+            if (activeCount < BINGO_RULES.RECOMMENDED_MIN || activeCount > BINGO_RULES.RECOMMENDED_MAX) {
+                customConfirm(`カード数が ${activeCount} 個です。ビンゴの性質上 ${BINGO_RULES.RECOMMENDED_MIN}〜${BINGO_RULES.RECOMMENDED_MAX}個 を推奨しますが反映しますか？`, yes => { if(yes) finalizeSave(); });
+                return;
+            }
+        }
+        finalizeSave();
+    };
+
+    function finalizeSave() {
+        if (isStarted && currentIndex >= 0 && currentIndex < shuffled.length - 1) {
+            customConfirm("設定を反映すると進行中のビンゴがリセットされますがよろしいですか？", yes => {
+                if(yes) executeFinalize();
+            });
+        } else executeFinalize();
+    }
+    
+    function executeFinalize() {
+        config.activeIndex = editingIndex; saveConfig();
+        settingsOverlay.style.display = 'none'; applyConfigToMain();
+    }
+
+    // 起動処理
+    initInputAutoSize();
+    applyConfigToMain();
+});
+</script>
+</body>
+</html>
