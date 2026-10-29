@@ -572,6 +572,8 @@ td input[type="text"] {
         .import-set-label { font-weight: bold; cursor: pointer; }
         .conflict-action { font-size: 11px; }
 
+        #audio-resume[hidden] { display: none; }
+        .header-right { flex-wrap: wrap; gap: 8px; }
     </style>
 </head>
 <body>
@@ -588,6 +590,7 @@ td input[type="text"] {
             <div class="mode-button-group" id="mode-selector"></div>
         </div>
         <div class="header-right">
+            <button class="sub-btn" id="audio-resume" hidden>音声を再開</button>
             <button class="sub-btn" id="fs-btn">全画面</button>
             <button class="sub-btn" id="reset-trigger">リセット</button>
         </div>
@@ -713,6 +716,7 @@ td input[type="text"] {
         </div>
     </div>
 
+<script src="audio.js?v=20261029-1"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
@@ -1034,26 +1038,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 4. 音声・フルスクリーン
     // ==========================================
-    const AudioContextDef = window.AudioContext || window.webkitAudioContext;
-    let audioCtx = null; let audioAllowed = false;
-    function unlockAudio() {
-        if (!audioCtx) audioCtx = new AudioContextDef();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        audioAllowed = true;
-    }
-    window.addEventListener('click', unlockAudio, { once: true });
-    window.addEventListener('keydown', unlockAudio, { once: true });
-    
-    function playTone(freq, duration, type = 'sine', vol = 0.3) {
-        if (!audioAllowed) return; 
-        if (!audioCtx) audioCtx = new AudioContextDef();
-        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + duration);
-    }
+    const recovery = document.getElementById('audio-resume');
+    const audio = BingoAudio.create({onRecovery:needed=>{recovery.hidden=!needed;}});
+    recovery.onclick=()=>audio.gestureTone(660,.1,'sine',.15);
+    document.addEventListener('click',e=>{if(e.target.closest('#start-overlay-btn,#main-display,.mode-btn'))audio.prepare();},true);
+    document.addEventListener('visibilitychange',()=>audio.visibility());
+    function playTone(freq,duration,type='sine',vol=.3,offset=0){audio.tone(freq,duration,type,vol,offset);}
 
     // ==========================================
     // 5. ビンゴロジック (ハイパフォーマンス版)
@@ -1082,7 +1072,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (firstValidMode === -1) firstValidMode = idx;
                 const btn = document.createElement('button');
                 btn.className = 'mode-btn'; btn.innerText = mName; btn.dataset.index = idx;
-                btn.onclick = (e) => { e.stopPropagation(); changeMode(idx); };
+                btn.onclick = (e) => { e.stopPropagation(); audio.gestureTone(660,.1,'sine',.15); changeMode(idx); };
                 modeSelector.appendChild(btn);
             }
         });
@@ -1091,6 +1081,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetBingo() {
+        audio.cancel();
         shuffled = []; currentIndex = -1; isStarted = false; isAnimating = false;
         startBtn.style.display = 'block'; mainContainer.style.display = 'none'; endResetBtn.style.display = 'none';
         document.getElementById('page-number').innerText = "";
@@ -1118,7 +1109,7 @@ document.addEventListener('DOMContentLoaded', () => {
             adjustScaleToFit();
         }
         updateHistory();
-        playTone(660, 0.1, 'sine', 0.15);
+
     }
 
     function handleAction() {
@@ -1205,7 +1196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // 確定音
                 playTone(880, 0.5, 'sine', 0.3); 
-                setTimeout(() => playTone(1320, 0.4, 'sine', 0.25), 100); 
+                playTone(1320, 0.4, 'sine', 0.25, .1);
                 isAnimating = false;
             }
         }
@@ -1236,12 +1227,13 @@ document.addEventListener('DOMContentLoaded', () => {
     startBtn.onclick = handleAction;
 
     window.addEventListener('keydown', (e) => {
+        if(e.isComposing || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.id==='audio-resume') return;
         if(document.getElementById('settings-overlay').style.display === 'flex' || sysModal.style.display === 'flex' || document.getElementById('set-selector-modal').style.display === 'flex') return; 
-        if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); handleAction(); }
+        if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); audio.prepare(); handleAction(); }
         else if (['Digit1','Digit2','Digit3','Digit4','Digit5'].includes(e.code)) {
             const idx = parseInt(e.code.replace('Digit','')) - 1;
             const btns = document.querySelectorAll('.mode-btn');
-            if (idx < btns.length) changeMode(parseInt(btns[idx].dataset.index));
+            if (idx < btns.length) { audio.gestureTone(660,.1,'sine',.15); changeMode(parseInt(btns[idx].dataset.index)); }
         }
     });
 
