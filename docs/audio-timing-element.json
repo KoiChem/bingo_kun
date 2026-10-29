@@ -1,0 +1,278 @@
+{
+  "frames": [
+    {
+      "wall": 17569,
+      "progress": ""
+    },
+    {
+      "wall": 17617.299999952316,
+      "progress": ""
+    },
+    {
+      "wall": 17667.299999952316,
+      "progress": ""
+    },
+    {
+      "wall": 17717.299999952316,
+      "progress": ""
+    },
+    {
+      "wall": 17767.5,
+      "progress": ""
+    },
+    {
+      "wall": 17817.699999809265,
+      "progress": ""
+    },
+    {
+      "wall": 17884.299999952316,
+      "progress": ""
+    },
+    {
+      "wall": 17951,
+      "progress": ""
+    },
+    {
+      "wall": 18034.099999904633,
+      "progress": ""
+    },
+    {
+      "wall": 18134.099999904633,
+      "progress": ""
+    },
+    {
+      "wall": 18251.199999809265,
+      "progress": ""
+    },
+    {
+      "wall": 18384.299999952316,
+      "progress": ""
+    },
+    {
+      "wall": 18534.299999952316,
+      "progress": ""
+    },
+    {
+      "wall": 18717.599999904633,
+      "progress": ""
+    },
+    {
+      "wall": 18934.5,
+      "progress": ""
+    },
+    {
+      "wall": 19184.199999809265,
+      "progress": ""
+    },
+    {
+      "wall": 19484.5,
+      "progress": ""
+    },
+    {
+      "wall": 19839.099999904633,
+      "progress": "1 / 23"
+    }
+  ],
+  "tones": [
+    {
+      "wall": 17568.799999952316,
+      "audio": 0.042666666666666665,
+      "at": 0.037333333333333336,
+      "output": {
+        "contextTime": 0,
+        "performanceTime": 17563.5
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 17617.299999952316,
+      "audio": 0.09066666666666667,
+      "at": 0.09066666666666667,
+      "output": {
+        "contextTime": 0.05189533333333333,
+        "performanceTime": 17616.799999952316
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 17667.299999952316,
+      "audio": 0.13866666666666666,
+      "at": 0.13866666666666666,
+      "output": {
+        "contextTime": 0.09987133333333334,
+        "performanceTime": 17664.799999952316
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 17717.199999809265,
+      "audio": 0.18666666666666668,
+      "at": 0.18666666666666668,
+      "output": {
+        "contextTime": 0.14788833333333334,
+        "performanceTime": 17712.799999952316
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 17767.5,
+      "audio": 0.24,
+      "at": 0.24,
+      "output": {
+        "contextTime": 0.20122266666666666,
+        "performanceTime": 17766.199999809265
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 17817.599999904633,
+      "audio": 0.288,
+      "at": 0.288,
+      "output": {
+        "contextTime": 0.24922166666666667,
+        "performanceTime": 17814.199999809265
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 17884.299999952316,
+      "audio": 0.35733333333333334,
+      "at": 0.35733333333333334,
+      "output": {
+        "contextTime": 0.31855599999999995,
+        "performanceTime": 17883.5
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 17950.799999952316,
+      "audio": 0.42133333333333334,
+      "at": 0.42133333333333334,
+      "output": {
+        "contextTime": 0.382553,
+        "performanceTime": 17947.39999985695
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 18034.099999904633,
+      "audio": 0.5066666666666667,
+      "at": 0.5066666666666667,
+      "output": {
+        "contextTime": 0.4678823333333333,
+        "performanceTime": 18032.699999809265
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 18134,
+      "audio": 0.6026666666666667,
+      "at": 0.6026666666666667,
+      "output": {
+        "contextTime": 0.5638873333333334,
+        "performanceTime": 18128.799999952316
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 18251.099999904633,
+      "audio": 0.72,
+      "at": 0.72,
+      "output": {
+        "contextTime": 0.6812216666666666,
+        "performanceTime": 18246.199999809265
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 18384.299999952316,
+      "audio": 0.8533333333333334,
+      "at": 0.8533333333333334,
+      "output": {
+        "contextTime": 0.814559,
+        "performanceTime": 18379.5
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 18534.299999952316,
+      "audio": 1.008,
+      "at": 1.008,
+      "output": {
+        "contextTime": 0.9692226666666666,
+        "performanceTime": 18534.099999904633
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 18717.599999904633,
+      "audio": 1.1893333333333334,
+      "at": 1.1893333333333334,
+      "output": {
+        "contextTime": 1.1505539999999999,
+        "performanceTime": 18715.5
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 18934.39999985695,
+      "audio": 1.408,
+      "at": 1.408,
+      "output": {
+        "contextTime": 1.3692206666666666,
+        "performanceTime": 18934.099999904633
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 19184.199999809265,
+      "audio": 1.6533333333333333,
+      "at": 1.6533333333333333,
+      "output": {
+        "contextTime": 1.614553,
+        "performanceTime": 19179.39999985695
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 19484.5,
+      "audio": 1.9573333333333334,
+      "at": 1.9573333333333334,
+      "output": {
+        "contextTime": 1.9185539999999999,
+        "performanceTime": 19483.39999985695
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 19834.299999952316,
+      "audio": 2.304,
+      "at": 2.304,
+      "output": {
+        "contextTime": 2.2652216666666667,
+        "performanceTime": 19830.099999904633
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 19839.099999904633,
+      "audio": 2.3093333333333335,
+      "at": 2.3093333333333335,
+      "output": {
+        "contextTime": 2.2705539999999997,
+        "performanceTime": 19835.39999985695
+      },
+      "outputLatency": 0.032
+    },
+    {
+      "wall": 19839.099999904633,
+      "audio": 2.3093333333333335,
+      "at": 2.4093333333333335,
+      "output": {
+        "contextTime": 2.2705539999999997,
+        "performanceTime": 19835.39999985695
+      },
+      "outputLatency": 0.032
+    }
+  ]
+}
