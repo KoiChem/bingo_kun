@@ -1133,7 +1133,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function startBingo() {
         const activeItems = activeSet.items.filter(i => i.active && i.values.some(v => v !== ""));
         if(activeItems.length === 0) { customAlert("表示できるカードがありません。"); return; }
-        shuffled = [...activeItems].sort(() => Math.random() - 0.5);
+        shuffled = [...activeItems];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
         isStarted = true; startBtn.style.display = 'none'; mainContainer.style.display = 'flex';
         nextStep();
     }
